@@ -26,6 +26,12 @@
         <action
             android:id="@+id/action_resultFragment_to_avaliacaoFragment"
             app:destination="@id/nav_avaliacao" />
+        <action
+            android:id="@+id/action_resultFragment_to_keyFragment"
+            app:destination="@id/nav_key" />
+        <action
+            android:id="@+id/action_nav_result_to_nav_key"
+            app:destination="@id/nav_key" />
     </fragment>
 
     <fragment
@@ -35,10 +41,16 @@
         tools:layout="@layout/fragment_info" />
 
     <fragment
+        android:id="@+id/nav_key"
+        android:name="com.recifemecatron.deolhonaconsulta.ui.home.KeyFragment"
+        android:label="Detalhes"
+        tools:layout="@layout/fragment_key" />
+
+    <fragment
         android:id="@+id/nav_avaliacao"
         android:name="com.recifemecatron.deolhonaconsulta.ui.home.AvaliacaoFragment"
         android:label="Avaliacao"
-        tools:layout="@layout/fragment_info" />
+        tools:layout="@layout/fragment_avaliacao" />
 
     <fragment
         android:id="@+id/nav_gallery"

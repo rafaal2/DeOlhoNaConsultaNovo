@@ -39,7 +39,8 @@ class InfoFragment : Fragment() {
         if (codSolicitacao != null) {
             lifecycleScope.launch {
                 try {
-                    val response = consultaDetRepository.consultaDet(codSolicitacao)
+                    val response = consultaDetRepository.consultaDet(codSolicitacaoStr)
+                    Log.d("API_RESPONSE", "Resposta completa: $response")
                     binding.cod.text = "Código de Solicitação: $codSolicitacaoStr"
                     binding.status.text = ""
                     binding.tvDataDaSolicitacao.text = "Data da Solicitação: ${response.dataDaSolicitacao ?: "N/A"}"

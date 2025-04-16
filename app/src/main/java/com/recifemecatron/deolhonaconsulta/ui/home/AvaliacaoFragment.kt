@@ -8,13 +8,15 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.google.firebase.messaging.FirebaseMessaging
 import com.recifemecatron.deolhonaconsulta.R
 import com.recifemecatron.deolhonaconsulta.data.Api.HttpClientFactory
 import com.recifemecatron.deolhonaconsulta.data.Api.response.AvaliacaoRequest
-import com.recifemecatron.deolhonaconsulta.data.Api.response.AvaliacaoResponse
 import com.recifemecatron.deolhonaconsulta.data.repository.AvaliacaoRepository
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class AvaliacaoFragment : Fragment() {
 
@@ -32,12 +34,11 @@ class AvaliacaoFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_avaliacao, container, false)
-    }
+    ): View? = inflater.inflate(R.layout.fragment_avaliacao, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val unidade = arguments?.getString("unidade_solicitante")
 
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
@@ -45,10 +46,8 @@ class AvaliacaoFragment : Fragment() {
                 return@addOnCompleteListener
             }
             tokenFirebase = task.result
-            Log.d("FCM_TOKEN", "Token do Firebase: $tokenFirebase")
         }
 
-        // Obtém referências dos componentes da tela
         scrollView = view.findViewById(R.id.scrollView)
         radioGroupResultado = view.findViewById(R.id.radioGroupResultado)
         radioGroupIndicador = view.findViewById(R.id.radioGroupIndicador)
@@ -57,65 +56,69 @@ class AvaliacaoFragment : Fragment() {
         indicatorContainer = view.findViewById(R.id.indicatorContainer)
         commentContainer = view.findViewById(R.id.commentContainer)
 
-        // Ao selecionar uma avaliação, torna visíveis os campos de indicador e comentário e rola a tela para baixo
         radioGroupResultado.setOnCheckedChangeListener { _, checkedId ->
-            if (checkedId != -1) {
-                indicatorContainer.visibility = View.VISIBLE
-                commentContainer.visibility = View.VISIBLE
-
-                // Aguarda o layout ser atualizado e, em seguida, rola até o final
-                scrollView.post {
-                    scrollView.fullScroll(ScrollView.FOCUS_DOWN)
+            when (checkedId) {
+                R.id.radioOtimo -> {
+                    indicatorContainer.visibility = View.GONE
+                    commentContainer.visibility = View.VISIBLE
+                }
+                R.id.radioRegular, R.id.radioPessimo -> {
+                    indicatorContainer.visibility = View.VISIBLE
+                    commentContainer.visibility = View.VISIBLE
+                    scrollView.post { scrollView.fullScroll(ScrollView.FOCUS_DOWN) }
+                }
+                else -> {
+                    indicatorContainer.visibility = View.GONE
+                    commentContainer.visibility = View.GONE
                 }
             }
         }
 
         buttonSubmit.setOnClickListener {
-            // Validação: verifica se um resultado foi selecionado
             val selectedResultadoId = radioGroupResultado.checkedRadioButtonId
             if (selectedResultadoId == -1) {
-                Toast.makeText(requireContext(), "Selecione uma avaliação", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(requireContext(), "Selecione uma avaliação", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Define o valor de 'resultado' conforme o radio button selecionado
             val resultadoValue = when (selectedResultadoId) {
-                R.id.radioOtimo -> "5"    // Ótimo = 5
-                R.id.radioRegular -> "3"   // Regular = 3
-                R.id.radioPessimo -> "1"   // Péssimo = 1
-                else -> "0"
+                R.id.radioOtimo    -> "5"
+                R.id.radioRegular  -> "3"
+                R.id.radioPessimo  -> "1"
+                else               -> "0"
             }
 
-            // Obtém o texto do radio button de indicador, se selecionado
             val selectedIndicadorId = radioGroupIndicador.checkedRadioButtonId
             val indicadorValue = if (selectedIndicadorId != -1) {
                 view.findViewById<RadioButton>(selectedIndicadorId).text.toString()
-            } else {
-                ""
-            }
+            } else ""
 
             val comentarioValue = editTextComentario.text.toString()
             val codSolicitacaoStr = arguments?.getString("codSolicitacao") ?: ""
 
+            // Monta o request e faz log do JSON
+            val avaliacaoRequest = AvaliacaoRequest(
+                COD_SOLICITACAO       = codSolicitacaoStr,
+                RESULTADO            = resultadoValue,
+                INDICADOR            = indicadorValue,
+                COMENTARIO           = comentarioValue,
+                NOME_UNIDADE_AVALIADA= unidade ?: "Desconhecida",
+                NUN_AVALIACAO        = 1,
+                TOKEN_FIREBASE       = tokenFirebase
+            )
+            val jsonToSend = Json.encodeToString(avaliacaoRequest)
+            Log.d("AVALIACAO_JSON", jsonToSend)
+
             lifecycleScope.launch {
                 try {
-                    val avaliacaoRequest = AvaliacaoRequest(
-                        COD_SOLICITACAO = codSolicitacaoStr,
-                        RESULTADO = resultadoValue,
-                        INDICADOR = indicadorValue,
-                        COMENTARIO = comentarioValue,
-                        NOME_UNIDADE_AVALIADA = "Unidade hospicio",
-                        NUN_AVALIACAO = 1,
-                        TOKEN_FIREBASE = tokenFirebase
-                    )
                     avaliacaoRepository.createAvaliacao(avaliacaoRequest)
                     Toast.makeText(requireContext(), "Avaliação enviada com sucesso!", Toast.LENGTH_SHORT).show()
+                    findNavController().popBackStack()
                 } catch (e: Exception) {
                     e.printStackTrace()
                     Toast.makeText(requireContext(), "Erro ao enviar avaliação", Toast.LENGTH_SHORT).show()
                 }
             }
         }
-
-    }}
+    }
+}

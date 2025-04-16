@@ -88,6 +88,17 @@
             android:padding="12dp" />
 
         <Button
+            android:id="@+id/button_imprimirAuto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Imprimir Autorização"
+            android:background="@drawable/main_button"
+            android:textColor="@color/white"
+            android:padding="12dp"
+            android:visibility="gone"/>
+
+        <Button
             android:id="@+id/button_rate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -12,7 +12,7 @@ import io.ktor.http.contentType
 
 class ConsultaDetRepository(private val httpClient: HttpClient) {
 
-    suspend fun consultaDet(codSolicitacao: Long): ConsultaDetResponse {
+    suspend fun consultaDet(codSolicitacao: String): ConsultaDetResponse {
         return httpClient.post("http://10.0.2.2/jaboataoAPI/src/Api/solicitacao.php?acao=info") {
             contentType(ContentType.Application.Json)
             headers {

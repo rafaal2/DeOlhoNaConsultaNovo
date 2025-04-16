@@ -130,9 +130,6 @@ class HomeFragment : Fragment() {
         }
     }
 
-    /**
-     * [3] Exibir um AlertDialog com o histórico
-     */
     private fun mostrarHistorico() {
         val listaConsultas = dao.getAll()
         if (listaConsultas.isEmpty()) {
@@ -145,7 +142,6 @@ class HomeFragment : Fragment() {
         builder.setTitle("Suas Solicitações Anteriores")
         builder.setItems(listaCodigos.toTypedArray()) { dialog, which ->
             val selecionado = listaCodigos[which]
-            // Preenche o EditText com o item clicado
             binding.editText.setText(selecionado)
             dialog.dismiss()
         }

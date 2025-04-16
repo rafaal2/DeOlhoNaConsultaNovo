@@ -3,6 +3,7 @@ package com.recifemecatron.deolhonaconsulta.ui.home
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.os.Bundle
+import android.provider.Settings.Global.putString
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -41,7 +42,6 @@ class ResultFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Obtém os argumentos
         val codSolicitacao = arguments?.getString("codSolicitacao") ?: ""
         val status = arguments?.getString("status") ?: ""
         val unidade = arguments?.getString("unidade_solicitante")
@@ -52,40 +52,42 @@ class ResultFragment : Fragment() {
 
         // Define a descrição com base no status
         val desc = when (status) {
-            "Autorizada" -> "Sua solicitação foi autorizada, favor comparecer na unidade " + unidade +" com urgência ou clique na opção 'Imprimir sua marcação' para obter a chave de autorização para realização de sua consulta ou exame."
-            "Expirada" -> "Seu agendamento expirou, caso não tenha sido atendido, favor procurar a unidade de saúde para verificar o motivo. Caso já tenha sido atendido, pedimos que avalie seu grau de satisfação com a consulta na unidade de saúde" + unidade
-            "NaoEncontrada" -> "Código de solicitação não existente, digitado incorretamente ou regulado pelo estado. Em caso de agendamento recente, favor aguardar o próximo dia útil e realizar nova busca."
+            "Autorizada" -> "Sua solicitação foi autorizada, favor comparecer na unidade $unidade com urgência ou clique na opção 'Imprimir sua marcação' para obter a chave de autorização para realização de sua consulta ou exame."
+            "Expirada" -> "Seu agendamento expirou, caso não tenha sido atendido, favor procurar a unidade de saúde para verificar o motivo. Caso já tenha sido atendido, pedimos que avalie seu grau de satisfação com a consulta na unidade de saúde$unidade"
             "Cancelada" -> "Sua solicitação foi cancelada, favor procurar a unidade de saúde para verificar o motivo."
             "Devolvida" -> "Sua solicitação foi devolvida, favor procurar a unidade de saúde para verificar o motivo."
             "Negada" -> "Sua solicitação não foi autorizada, favor procurar a unidade de saúde para verificar o motivo."
             "Pendente" -> "Sua solicitação está pendente."
-            else -> "Status desconhecido."
+            "Nao encontrado" -> "Código de solicitação não existente, digitado incorretamente ou regulado pelo estado. Em caso de agendamento recente, favor aguardar o próximo dia útil e realizar nova busca."
+            else -> "n/a"
         }
         binding.desc.text = desc
 
-        // Lógica para exibir/ocultar e alterar os textos dos botões com base no status
         when (status.lowercase()) {
             "pendente" -> {
-                // Pendente: Avaliar atendimento + Mais Informações
                 binding.buttonRate.visibility = View.VISIBLE
                 binding.buttonRate.text = "Avaliar atendimento"
                 binding.buttonConfirm.visibility = View.GONE
                 binding.buttonPlusInfo.visibility = View.VISIBLE
             }
-            "devolvida", "cancelada", "negada", "naoencontrada" -> {
+            "devolvida", "cancelada", "negada" -> {
                 binding.buttonRate.visibility = View.GONE
                 binding.buttonConfirm.visibility = View.GONE
                 binding.buttonPlusInfo.visibility = View.VISIBLE
             }
+            "nao encontrado" ->{
+                binding.buttonRate.visibility = View.GONE
+                binding.buttonConfirm.visibility = View.GONE
+                binding.buttonPlusInfo.visibility = View.GONE
+            }
             "autorizada" -> {
-                binding.buttonRate.visibility = View.VISIBLE
+                binding.buttonRate.visibility = View.GONE
+                binding.buttonImprimirAuto.visibility = View.VISIBLE
                 binding.buttonConfirm.visibility = View.VISIBLE
                 binding.buttonPlusInfo.visibility = View.VISIBLE
                 binding.buttonConfirm.text = "Ciente de agendamento"
-                binding.buttonRate.text = "Imprimir autorização"
             }
             "expirada" -> {
-                // Expirada: Avaliar atendimento + Mais Informações
                 binding.buttonRate.visibility = View.VISIBLE
                 binding.buttonRate.text = "Avaliar atendimento"
                 binding.buttonConfirm.visibility = View.GONE
@@ -105,6 +107,13 @@ class ResultFragment : Fragment() {
             findNavController().navigate(R.id.action_resultFragment_to_infoFragment, bundle)
         }
 
+        binding.buttonImprimirAuto.setOnClickListener {
+            val bundle = Bundle().apply {
+                putString("codSolicitacao", codSolicitacao)
+            }
+            findNavController().navigate(R.id.action_resultFragment_to_keyFragment, bundle)
+        }
+
         binding.buttonRate.setOnClickListener {
             val bundle = Bundle().apply {
                 putString("codSolicitacao", codSolicitacao)
@@ -113,7 +122,9 @@ class ResultFragment : Fragment() {
             if (status.equals("Autorizada", ignoreCase = true)) {
                 findNavController().navigate(R.id.action_resultFragment_to_avaliacaoFragment, bundle)
             } else {
-                // Para outros casos, por exemplo, direciona para avaliação
+                val bundle = Bundle().apply {
+                putString("codSolicitacao", codSolicitacao)
+                putString("unidade_solicitante", unidade)}
                 findNavController().navigate(R.id.action_resultFragment_to_avaliacaoFragment, bundle)
             }
         }
