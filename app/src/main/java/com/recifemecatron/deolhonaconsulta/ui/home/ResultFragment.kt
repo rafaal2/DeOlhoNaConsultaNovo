@@ -46,11 +46,9 @@ class ResultFragment : Fragment() {
         val status = arguments?.getString("status") ?: ""
         val unidade = arguments?.getString("unidade_solicitante")
 
-        // Atualiza os textos com os dados da solicitação
         binding.cod.text = "Código de Solicitação: $codSolicitacao"
         binding.status.text = "Status: $status"
 
-        // Define a descrição com base no status
         val desc = when (status) {
             "Autorizada" -> "Sua solicitação foi autorizada, favor comparecer na unidade $unidade com urgência ou clique na opção 'Imprimir sua marcação' para obter a chave de autorização para realização de sua consulta ou exame."
             "Expirada" -> "Seu agendamento expirou, caso não tenha sido atendido, favor procurar a unidade de saúde para verificar o motivo. Caso já tenha sido atendido, pedimos que avalie seu grau de satisfação com a consulta na unidade de saúde$unidade"
@@ -141,15 +139,12 @@ class ResultFragment : Fragment() {
         val editTelefone = dialogView.findViewById<EditText>(R.id.editTelefone)
         val radioGroupTipo = dialogView.findViewById<RadioGroup>(R.id.radioGroupTipo)
 
-        // Inicia oculto
         telefoneLayout.visibility = View.GONE
 
         val dialog = AlertDialog.Builder(requireContext())
             .setTitle("Confirmar Atendimento")
             .setView(dialogView)
-            // Botão SIM
             .setPositiveButton("Sim", null)
-            // Botão NÃO: abre outro diálogo para cancelamento
             .setNegativeButton("Não") { dlg, _ ->
                 dlg.dismiss()
                 exibirDialogCancelamento(codSolicitacao)
@@ -192,13 +187,11 @@ class ResultFragment : Fragment() {
         AlertDialog.Builder(requireContext()).apply {
             setMessage("Sua consulta será cancelada. Deseja confirmar?")
             setPositiveButton("Confirmar") { dialog, _ ->
-                // Envia “N” + null para telefone e tipo
                 enviarConfirmacaoApi(codSolicitacao, null, null, "N")
                 Toast.makeText(context, "Obrigado por avisar", Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
             }
             setNegativeButton("Voltar") { dialog, _ ->
-                // Caso o usuário cancele, fecha o diálogo
                 dialog.dismiss()
             }
         }.show()

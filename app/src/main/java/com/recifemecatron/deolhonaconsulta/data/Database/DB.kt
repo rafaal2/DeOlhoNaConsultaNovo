@@ -6,7 +6,6 @@ import android.database.sqlite.SQLiteOpenHelper
 
 class DB(context: Context) : SQLiteOpenHelper(context, "consulta", null, 1) {
 
- // Cria a tabela 'consulta' com duas colunas: id (PK autoincrement) e cod_solicitacao
  private val sqlCreateConsulta = """
         CREATE TABLE consulta (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

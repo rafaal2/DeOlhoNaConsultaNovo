@@ -33,7 +33,6 @@ class HomeFragment : Fragment() {
 
     private val consultaRepository = ConsultaRepository(HttpClientFactory.client)
 
-    // Instância do DAO para usar no insert e getAll
     private val dao by lazy { ConsultaDao(requireContext()) }
 
     override fun onCreateView(
@@ -49,7 +48,6 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Obter token Firebase
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
                 Log.w("FCM_TOKEN", "Erro ao obter token do Firebase", task.exception)
@@ -59,21 +57,18 @@ class HomeFragment : Fragment() {
             Log.d("FCM_TOKEN", "Token Firebase: $tokenFirebase")
         }
 
-        // [1] Detectar clique no "drawableEnd" do EditText
         binding.editText.setOnTouchListener { _, event ->
             val DRAWABLE_RIGHT = 2
             if (event.action == MotionEvent.ACTION_UP) {
                 val editText = binding.editText
-                // Verifica se o clique foi no fim do EditText
                 if (event.rawX >= (editText.right - editText.compoundDrawables[DRAWABLE_RIGHT].bounds.width())) {
-                    mostrarHistorico() // chama o AlertDialog de histórico
+                    mostrarHistorico()
                     return@setOnTouchListener true
                 }
             }
             false
         }
 
-        // [2] Clique no botão para enviar solicitação
         binding.buttonSubmit.setOnClickListener {
             val codSolicitacao = binding.editText.text.toString()
 
@@ -103,10 +98,8 @@ class HomeFragment : Fragment() {
                     )
                     Log.d("API_RESPONSE", "Status: ${response.STATUS}")
 
-                    // Salvar no banco se não existir
                     salvarSolicitacaoLocal(codSolicitacao)
 
-                    // Navega para a próxima tela
                     val bundle = Bundle().apply {
                         putString("codSolicitacao", codSolicitacao)
                         putString("status", response.STATUS)
@@ -149,9 +142,6 @@ class HomeFragment : Fragment() {
         builder.show()
     }
 
-    /**
-     * [4] Insere no banco local, só se não existir
-     */
     private fun salvarSolicitacaoLocal(cod: String) {
         if (!dao.exists(cod)) {
             val resultado = dao.insert(cod)
