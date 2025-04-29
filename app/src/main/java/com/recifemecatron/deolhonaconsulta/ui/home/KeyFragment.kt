@@ -63,7 +63,6 @@ class KeyFragment : Fragment() {
                 }
             }
 
-            // Botão Imprimir: tira um “print” da tela e abre o share sheet
             binding.buttonImprimir.setOnClickListener {
                 // Cria bitmap da view inteira
                 val rootView = binding.root
